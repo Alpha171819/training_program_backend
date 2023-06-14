@@ -16,7 +16,7 @@ GET http://localhost:3131/topics
 GET http://localhost:3131/topicReference/1
 ### 
 # core algorithm
-GET http://localhost:3131/getSixDayTopics/1
+GET http://localhost:3131/getSixDayTopics/2
 ###
 
 DELETE http://localhost:3131/subjects/35

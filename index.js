@@ -389,14 +389,11 @@ app.get("/getSixDayTopics/:id", (req, resi) => {
       if (error) throw error;
       // connected!
       let topics = results;
+       console.log('topics are ', topics);
       topics.map((topic, idx) => {
-        console.log("idx", idx, "total", topic.total);
         while (topic.total > 0) {
-          console.log("at idx", idx, "total", topic.total);
-          console.log("bigArray is ", bigArray);
-
           // add to smallArray
-          smallArray.push(`${topic.total} total = ` + topic.learning_obj);
+          smallArray.push(topic.learning_obj);
           topic.total -= 1;
           if (smallArray.length == 4) {
             bigArray.push(smallArray);
@@ -404,8 +401,16 @@ app.get("/getSixDayTopics/:id", (req, resi) => {
           }
         }
       });
+
       bigArray.push(smallArray);
-      resi.json(bigArray);
+      // remove duplicates from each array in bigArray
+      bigArrayWithoutDuplicates = [];
+      bigArray.forEach((arr) => {
+        let unique = [...new Set(arr)];
+        bigArrayWithoutDuplicates.push(unique);
+      });
+
+      resi.json(bigArrayWithoutDuplicates);
       // return topic;
     }
   );
