@@ -38,7 +38,7 @@ app.get("/courses", (req, ress) => {
 
 app.get("/subjects", (req, res) => {
   con.query("USE mceme;", (err, res, fields) => {});
-  con.query("select * from subjects;", function (error, results, fields) {
+  con.query("select * from subjects_3;", function (error, results, fields) {
     if (error) throw error;
     // connected!
     res.json(results);
@@ -51,7 +51,7 @@ app.get("/subjects/:id", (req, res) => {
   const id = req.params.id;
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    `select * from subjects where sub_id=${id};`,
+    `select * from subjects_3 where sub_id=${id};`,
     function (error, results, fields) {
       if (error) throw error;
       // connected!
@@ -72,13 +72,20 @@ app.get("/instructors", (req, res) => {
 });
 
 app.post("/subjects", (req, resi) => {
-  const data = req.body;
   console.log(req.body);
-  const { sub_name, total_theory, total_practical, total_itp, course_id } =
-    req.body;
+  const {
+    sub_name,
+    total_theory,
+    total_practical,
+    total_itp,
+    total_ld,
+    course_id,
+    total_evng_classes,
+    room_name,
+  } = req.body;
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    `INSERT INTO subjects (sub_name, total_theory, total_practical, total_itp, course_id) values ('${sub_name}', ${total_theory}, ${total_practical}, ${total_itp}, ${course_id})`,
+    `INSERT INTO subjects_3 (sub_name, total_theory, total_practical, total_itp, total_ld,  course_id, total_evng_classes, room_name) values ('${sub_name}', ${total_theory}, ${total_practical}, ${total_itp}, ${total_ld}, ${course_id}, ${total_evng_classes},'${room_name}')`,
     (err, res, fields) => {
       if (err) {
         console.log(err);
@@ -88,6 +95,44 @@ app.post("/subjects", (req, resi) => {
     }
   );
 });
+
+
+// api route to add notifications
+app.post("/addNotification", (req, resi) => {
+  console.log(req.body);
+  const {
+    id,
+    name,
+    date,
+  } = req.body;
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(
+    `INSERT INTO notifications (id, name, date, isTriggered) values ('${id}', '${name}', '${date}', 0)`,
+    (err, res, fields) => {
+      if (err) {
+        console.log(err);
+      } else {
+        resi.status(200).json({ message: "success" });
+      }
+    }
+  );
+});
+
+// api route to get notification
+app.get("/getNotification", (req, resi) => {
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(
+    `select * from notifications where isTriggered=0;`,
+    function (error, results, fields) {
+      if (error) throw error;
+      // connected!
+      resi.json(results);
+    }
+  );
+  console.log("NOTIFICATIONS QUERIED AT", new Date().toString());
+});
+
+
 
 app.post("/courses", (req, ress) => {
   const data = req.body;
@@ -157,7 +202,7 @@ app.delete("/subjects/:id", (req, ress) => {
   const id = req.params.id;
   console.log(id);
   con.query("USE mceme;", (err, res, fields) => {});
-  con.query(`DELETE FROM subjects WHERE sub_id=${id}`, (err, res, fields) => {
+  con.query(`DELETE FROM subjects_3 WHERE sub_id=${id}`, (err, res, fields) => {
     if (err) {
       console.log(err);
       ress.status(500).json({ message: "error" });
@@ -174,7 +219,7 @@ app.put("/subjects/:id", (req, ress) => {
   console.log(id);
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    `UPDATE subjects SET ? WHERE sub_id=${id}`,
+    `UPDATE subjects_2 SET ? WHERE sub_id=${id}`,
     data,
     (err, res, fields) => {
       if (err) {
@@ -245,6 +290,24 @@ app.get("/runningSubjects", (req, res) => {
   console.log("RUNNING SUBJECTS QUERIED AT", new Date().toString());
 });
 
+// delete instructor by id
+app.delete("/instructors/:id", (req, ress) => {
+  const id = req.params.id;
+  console.log(id);
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(
+    `DELETE FROM instructors WHERE inst_id=${id}`,
+    (err, res, fields) => {
+      if (err) {
+        console.log(err);
+        ress.status(500).json({ message: "error" });
+      } else {
+        ress.status(200).json({ message: "deleted " + id });
+      }
+    }
+  );
+});
+
 // get topics by subject id
 app.get("/topics/:id", (req, resi) => {
   const id = req.params.id;
@@ -264,11 +327,14 @@ app.get("/topics/:id", (req, resi) => {
 // get all topics
 app.get("/topics", (req, resi) => {
   con.query("USE mceme;", (err, res, fields) => {});
-  con.query(`select * from topics_2;`, function (error, results, fields) {
-    if (error) throw error;
-    // connected!
-    resi.json(results);
-  });
+  con.query(
+    `select * from topic_reference_2;`,
+    function (error, results, fields) {
+      if (error) throw error;
+      // connected!
+      resi.json(results);
+    }
+  );
   console.log("TOPICS QUERIED AT", new Date().toString());
 });
 
@@ -322,14 +388,17 @@ app.delete("/topic/:id", (req, ress) => {
   const id = req.params.id;
   console.log(id);
   con.query("USE mceme;", (err, res, fields) => {});
-  con.query(`DELETE FROM topics_2 WHERE id=${id}`, (err, res, fields) => {
-    if (err) {
-      console.log(err);
-      ress.status(500).json({ message: "error" });
-    } else {
-      ress.status(200).json({ message: "deleted " + id });
+  con.query(
+    `DELETE FROM topic_reference_2 WHERE id=${id}`,
+    (err, res, fields) => {
+      if (err) {
+        console.log(err);
+        ress.status(500).json({ message: "error" });
+      } else {
+        ress.status(200).json({ message: "deleted " + id });
+      }
     }
-  });
+  );
 });
 
 // get the running subjects and query the subjects table to get the subject name
@@ -365,7 +434,7 @@ app.post("/addTopicReference", (req, ress) => {
   } = data;
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    `INSERT INTO topic_reference (cnt, terminal_obj, enabling_obj, learning_obj, bloom_level, LD, theory_cnt, practical_cnt, itp_cnt, evng_classes, sub_id) values (${cnt}, '${terminal_obj}', '${enabling_obj}', '${learning_obj}', '${bloom_level}', '${LD}', ${theory_cnt}, ${practical_cnt}, ${itp_cnt}, ${evng_classes}, ${sub_id})`,
+    `INSERT INTO topic_reference_2 (cnt, terminal_obj, enabling_obj, learning_obj, bloom_level, LD, theory_cnt, practical_cnt, itp_cnt, evng_classes, sub_id) values (${cnt}, '${terminal_obj}', '${enabling_obj}', '${learning_obj}', '${bloom_level}', '${LD}', ${theory_cnt}, ${practical_cnt}, ${itp_cnt}, ${evng_classes}, ${sub_id})`,
     (err, res, fields) => {
       if (err) {
         console.log(err);
@@ -384,16 +453,15 @@ app.get("/getSixDayTopics/:id", (req, resi) => {
   let smallArray = [];
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    `select * from topic_reference where sub_id=${id};`,
+    `select * from topic_reference_2 where sub_id=${id};`,
     function (error, results, fields) {
       if (error) throw error;
       // connected!
       let topics = results;
-       console.log('topics are ', topics);
       topics.map((topic, idx) => {
         while (topic.total > 0) {
           // add to smallArray
-          smallArray.push(topic.learning_obj);
+          smallArray.push({ id: topic.id, topic: topic.learning_obj });
           topic.total -= 1;
           if (smallArray.length == 4) {
             bigArray.push(smallArray);
@@ -406,7 +474,9 @@ app.get("/getSixDayTopics/:id", (req, resi) => {
       // remove duplicates from each array in bigArray
       bigArrayWithoutDuplicates = [];
       bigArray.forEach((arr) => {
-        let unique = [...new Set(arr)];
+        const unique = arr.filter(
+          (obj, index) => arr.findIndex((item) => item.id === obj.id) === index
+        );
         bigArrayWithoutDuplicates.push(unique);
       });
 
@@ -421,7 +491,7 @@ app.get("/getSixDayTopics/:id", (req, resi) => {
 app.get("/topicReference/:id", (req, resi) => {
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    `select * from topic_reference where sub_id=${req.params.id};`,
+    `select * from topic_reference_2 where sub_id=${req.params.id};`,
     function (error, results, fields) {
       if (error) throw error;
       // connected!
@@ -465,4 +535,50 @@ app.delete("/topicReference/:id", (req, ress) => {
       }
     }
   );
+});
+
+// api to add users
+app.post("/addUser", (req, ress) => {
+  const data = req.body;
+  const { name, username, password } = data;
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(
+    `INSERT INTO users (name, email, password) values ('${name}', '${username}', '${password}')`,
+    (err, res, fields) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log("USER ADDED @", new Date().toString());
+        ress.status(200).json({ message: "success" });
+      }
+    }
+  );
+});
+
+// api to get users
+app.get("/users", (req, ress) => {
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(`select * from users`, (err, res, fields) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("USERS QUERIED @", new Date().toString());
+      ress.status(200).json(res);
+    }
+  });
+});
+
+// api to delete user
+app.delete("/users/:id", (req, ress) => {
+  const id = req.params.id;
+  console.log(id);
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(`DELETE FROM users WHERE id=${id}`, (err, res, fields) => {
+    if (err) {
+      console.log(err);
+      ress.status(500).json({ message: "error" });
+    } else {
+      ress.status(200).json({ message: "deleted " + id });
+    }
+  });
 });
