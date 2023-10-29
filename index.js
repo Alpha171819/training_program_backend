@@ -337,7 +337,7 @@ app.post("/addPreferedTopics", (req, ress) => {
 app.get("/runningSubjects", (req, res) => {
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    "select * from running_subjects where status=0;",
+    "select * from subjects_3 where running_status=0;",
     function (error, results, fields) {
       if (error) throw error;
       // connected!
@@ -406,7 +406,7 @@ con.query("USE mceme;", (err, res, fields) => {});
 
   while(tempLD--){
   con.query(
-    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${1}, ${0}, ${0}, ${0}, ${0},${0}, ${sub_id})`,
+    `INSERT INTO ,topic_status ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id,topic_status) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${1}, ${0}, ${0}, ${0}, ${0},${0}, ${sub_id},${0})`,
    
   );
   }
@@ -414,7 +414,7 @@ con.query("USE mceme;", (err, res, fields) => {});
 
   while(temptheory_cnt--){
   con.query(
-    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${1}, ${0}, ${0}, ${0},${0}, ${sub_id})`,
+    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id,topic_status) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${1}, ${0}, ${0}, ${0},${0}, ${sub_id},${0})`,
    
   );
   }
@@ -422,21 +422,21 @@ con.query("USE mceme;", (err, res, fields) => {});
 
   while(temppractical_cnt--){
   con.query(
-    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${1}, ${0}, ${0},${0}, ${sub_id})`,
+    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id,topic_status) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${1}, ${0}, ${0},${0}, ${sub_id},${0})`,
     
   );
   }
 
   while(tempitp_cnt--){
   con.query(
-    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${0}, ${1}, ${0},${0}, ${sub_id})`,
+    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id,topic_status) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${0}, ${1}, ${0},${0}, ${sub_id},${0})`,
    
   );
   }
 
   while(tempevening_classes--){
   con.query(
-    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${0}, ${0}, ${1},${0}, ${sub_id})`,
+    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id,topic_status) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${0}, ${0}, ${1},${0}, ${sub_id},${0})`,
    
   );
   }
@@ -489,10 +489,22 @@ app.delete("/topic/:id", (req, ress) => {
 
 // get the running subjects and query the subjects table to get the subject name
 
-app.get("/runningSubjects", (req, resi) => {
+app.get("/uncompletedSubjects", (req, resi) => {
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    `select * from running_subjects where status=0;`,
+    `select * from subjects_3 where running_status=0;`,
+    function (error, results, fields) {
+      if (error) throw error;
+      // connected!
+      resi.json(results);
+    }
+  );
+  console.log("RUNNING SUBJECTS QUERIED AT", new Date().toString());
+});
+app.get("/completedSubjects", (req, resi) => {
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(
+    `select * from subjects_3 where running_status=1;`,
     function (error, results, fields) {
       if (error) throw error;
       // connected!
@@ -546,9 +558,12 @@ app.get("/getFirstSubjectTopics/:id", (req, resi) => {
   con.query("USE mceme;", (err, res, fields) => {});
 
   con.query(
-    `select * from exp where subject_id=${id};`,
+    `select * from exp where subject_id=${id} and topic_status = 0;`,
     function (error, results, fields) {
       if (error) throw error;
+      else{
+        console.log("firstsubjects data",results);
+      }
       // console.log(results);
      // connected!
       let topics = results;
@@ -558,7 +573,8 @@ app.get("/getFirstSubjectTopics/:id", (req, resi) => {
 
         con.query("USE mceme;", (err, res, fields) => {});
         con.query(
-          `UPDATE running_subjects SET status=1 WHERE sub_id=${id}`,
+          `UPDATE subjects_3 SET running_status=1 WHERE sub_id=${id}`,
+
           (err, res, fields) => {
             if (err) {
               console.log(err);
@@ -590,9 +606,12 @@ app.get("/getSecondSubjectTopics/:id", (req, resi) => {
   let array18 = [];
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    `select * from exp where subject_id=${id};`,
+    `select * from exp where subject_id=${id} and topic_status = 0;`,
     function (error, results, fields) {
       if (error) throw error;
+      else{
+        console.log("secondsubjects data",results);
+      }
       // console.log(results);
      // connected!
       let topics = results;
@@ -602,7 +621,7 @@ app.get("/getSecondSubjectTopics/:id", (req, resi) => {
 
         con.query("USE mceme;", (err, res, fields) => {});
         con.query(
-          `UPDATE running_subjects SET status=1 WHERE sub_id=${id}`,
+          `UPDATE subjects_3 SET running_status=1 WHERE sub_id=${id}`,
           (err, res, fields) => {
             if (err) {
               console.log(err);
@@ -639,7 +658,7 @@ console.log("time table data ",datainarray);
   con.query("USE mceme;", (err, res, fields) => {});
   datainarray.map((item, idx) => {
     con.query(
-      `DELETE FROM exp WHERE id=${item.id}`,
+      `update  exp set topic_status = 1  WHERE id=${item.id}`,
       (err, res, fields) => {
         if (err) {
           console.log(err);
@@ -750,3 +769,4 @@ app.delete("/users/:id", (req, ress) => {
     }
   });
 });
+
