@@ -13,7 +13,7 @@ app.listen(3131, () => {
 var con = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "Shiva@1802",
+  password: "THankyou12@!",
 });
 
 app.use(bodyParser.json());
@@ -86,7 +86,7 @@ app.post("/subjects", (req, resi) => {
   } = req.body;
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    `INSERT INTO subjects_3 (sub_name, total_theory, total_practical, total_itp, total_ld,  course_id, total_evng_classes, room_name) values ('${sub_name}', ${total_theory}, ${total_practical}, ${total_itp}, ${total_ld}, ${course_id}, ${total_evng_classes},'${room_name}')`,
+    `INSERT INTO subjects_3 (sub_name, total_theory, total_practical, total_itp, total_ld,  course_id, total_evng_classes, room_name, running_status) values ('${sub_name}', ${total_theory}, ${total_practical}, ${total_itp}, ${total_ld}, ${course_id}, ${total_evng_classes},'${room_name}', ${0})`,
     (err, res, fields) => {
       if (err) {
         console.log(err);
@@ -395,6 +395,7 @@ app.post("/topic", (req, resi) => {
     itp_cnt,
     evening_classes,
     sub_id,
+    course_id,
   } = data;
 
   let tempLD = LD;
@@ -406,7 +407,7 @@ con.query("USE mceme;", (err, res, fields) => {});
 
   while(tempLD--){
   con.query(
-    `INSERT INTO ,topic_status ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id,topic_status) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${1}, ${0}, ${0}, ${0}, ${0},${0}, ${sub_id},${0})`,
+    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, subject_id,topic_status, course_id) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${1}, ${0}, ${0}, ${0}, ${0}, ${sub_id},${0},${course_id})`,
    
   );
   }
@@ -414,7 +415,7 @@ con.query("USE mceme;", (err, res, fields) => {});
 
   while(temptheory_cnt--){
   con.query(
-    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id,topic_status) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${1}, ${0}, ${0}, ${0},${0}, ${sub_id},${0})`,
+    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, subject_id,topic_status, course_id) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${1}, ${0}, ${0}, ${0}, ${sub_id},${0},${course_id})`,
    
   );
   }
@@ -422,21 +423,21 @@ con.query("USE mceme;", (err, res, fields) => {});
 
   while(temppractical_cnt--){
   con.query(
-    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id,topic_status) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${1}, ${0}, ${0},${0}, ${sub_id},${0})`,
+    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, subject_id,topic_status, course_id) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${1}, ${0}, ${0}, ${sub_id},${0},${course_id})`,
     
   );
   }
 
   while(tempitp_cnt--){
   con.query(
-    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id,topic_status) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${0}, ${1}, ${0},${0}, ${sub_id},${0})`,
+    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, subject_id,topic_status, course_id) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${0}, ${1}, ${0},${sub_id},${0}, ${course_id})`,
    
   );
   }
 
   while(tempevening_classes--){
   con.query(
-    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, total, subject_id,topic_status) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${0}, ${0}, ${1},${0}, ${sub_id},${0})`,
+    `INSERT INTO exp ( terminal_obj, enabling_obj, learning_objl, blooms_level, LD, theory_cnt, practical_cnt, itp_cnt, evening_cnt, subject_id,topic_status, course_id) values ( '${terminal_obj}', '${enabling_obj}', '${learning_obj}', ${blooms_level}, ${0}, ${0}, ${0}, ${0}, ${1},${sub_id},${0}, ${course_id})`,
    
   );
   }
