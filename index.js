@@ -13,7 +13,7 @@ app.listen(3131, () => {
 var con = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "THankyou12@!",
+  password: "Shiva@1802",
 });
 
 app.use(bodyParser.json());
@@ -35,6 +35,17 @@ app.get("/courses", (req, ress) => {
     ress.json(results);
   });
   console.log("COURSES QUERIED AT", new Date().toString());
+});
+
+app.get("/subjectsssss/:course", (req, res) => {
+  const course = req.params.course;
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(`select * from subjects_3 where course_id=${course};`, function (error, results, fields) {
+    if (error) throw error;
+    // connected!
+    res.json(results);
+  });
+  console.log("SUBJECTS QUERIED AT", new Date().toString());
 });
 
 app.get("/subjects", (req, res) => {
@@ -61,6 +72,77 @@ app.get("/subjects/:id", (req, res) => {
   );
   console.log("SUBJECTS QUERIED AT", new Date().toString());
 });
+
+//get all topics from exp table
+app.get("/settingtopicsfromexp", (req, resss) => {
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(`SELECT distinct subject_id, subjects_3.total FROM mceme.exp inner join mceme.subjects_3 on mceme.exp.subject_id = mceme.subjects_3.sub_id order by subject_id ;`,
+  function (error, results, fields) {
+    if (error) throw error; 
+    resss.json(results)
+
+    results.map((item,idx)=>{
+      // get topics from exp table
+      con.query("USE mceme;", (err, res, fields) => {});
+      con.query(`SELECT id, subject_id FROM mceme.exp where subject_id=${item.subject_id};`,
+      function (error, results, fields) {
+        if (error) throw error; 
+        console.log(results, 'results')
+        results.map((item,idx)=>{
+          // get topics from exp table
+          con.query("USE mceme;", (err, res, fields) => {});
+          con.query(`update mceme.exp set count = ${idx+1} where id = ${item.id};`,
+          function (error, results, fields) {
+            if (error) throw error; 
+            // resss.json(results)
+          })
+          console.log(item.id, 'item')
+        })
+       
+      }
+    );
+      
+    })
+
+
+  });
+});
+
+app.get("/settingtopicsfromexp_2", (req, resss) => {
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(`SELECT distinct subject_id, subjects_3.total FROM mceme.exp_2 inner join mceme.subjects_3 on mceme.exp_2.subject_id = mceme.subjects_3.sub_id order by subject_id ;`,
+  function (error, results, fields) {
+    if (error) throw error; 
+    resss.json(results)
+
+    results.map((item,idx)=>{
+      // get topics from exp_2 table
+      con.query("USE mceme;", (err, res, fields) => {});
+      con.query(`SELECT id, subject_id FROM mceme.exp_2 where subject_id=${item.subject_id};`,
+      function (error, results, fields) {
+        if (error) throw error; 
+        console.log(results, 'results')
+        results.map((item,idx)=>{
+          // get topics from exp_2 table
+          con.query("USE mceme;", (err, res, fields) => {});
+          con.query(`update mceme.exp_2 set count = ${idx+1} where id = ${item.id};`,
+          function (error, results, fields) {
+            if (error) throw error; 
+            // resss.json(results)
+          })
+          console.log(item.id, 'item')
+        })
+       
+      }
+    );
+      
+    })
+
+
+  });
+});
+
+
 
 app.get("/instructors", (req, res) => {
   con.query("USE mceme;", (err, res, fields) => {});
@@ -451,7 +533,21 @@ con.query("USE mceme;", (err, res, fields) => {});
   
 });
 
-
+app.get("/topic/:id/:course_id", (req, resi) => {
+  const course_id = req.params.course_id;
+  const id = req.params.id;
+  console.log("subjectid broooo",id);
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(
+    `select * from exp where subject_id=${id} and course_id=${course_id};`,
+    function (error, results, fields) {
+      if (error) throw error;
+      // connected!
+      resi.json(results);
+    }
+  );
+  console.log("TOPIC BY SUB_ID QUERIED AT", new Date().toString());
+});
 
 
 // get the topic by sub_id
@@ -547,100 +643,200 @@ app.post("/addTopicReference", (req, ress) => {
 
 
 
-const changeIfTopicUndefined = (req, res, next) => {
+
+
+
+app.get('/getCompletedSubjectNames', (req, resi) => {
+
+var resultsArr = []
+  
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query("select distinct subject_id from exp;", function (error, results, fields) {
+    if (error) throw error; 
+    console.log(results, 'subject ids')
+    results.map((id,idx)=>{
+
+      con.query(
+        `(SELECT if (
+          (SELECT COUNT(*) FROM exp WHERE subject_id = ${id.subject_id} AND topic_status = 1) = 
+          (SELECT COUNT(*) FROM exp WHERE subject_id = ${id.subject_id})
+          , 1 ,0)  as CompletedSubject)`,
+        function async (error, results, fields) {
+          if (error) throw error;
+          resultsArr.push([...results, sub_id = id.subject_id])
+          if(results[0].CompletedSubject==1){
+            con.query("USE mceme;", (err, res, fields) => {});
+            con.query(
+              `UPDATE subjects_3 SET running_status=1 WHERE sub_id=${id.subject_id}`,
+              (err, res, fields) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  console.log(
+                    "RUNNING SUBJECT STATUS CHANGED TO 1 @",
+                    new Date().toString()
+                  );
+                }
+              }
+            );
+          }
+
+
+      console.log(results,+id.subject_id+ 'sdfjklasdjflkajdf')
+
+          // connected!
+
+        
+          
+        }
+      );
+     
+        
+    })
+    resi.json(resultsArr)
+
+      console.log(resultsArr, 'resultsArr')
+
+  });
+
+  con.query("select distinct subject_id from exp_2;", function (error, resultsss, fields) {
+    if (error) throw error; 
+    resultsss.map((id,idx)=>{
+  
+      con.query(
+        `(SELECT if (
+          (SELECT COUNT(*) FROM exp_2 WHERE subject_id = ${id.subject_id} AND topic_status = 1) = 
+          (SELECT COUNT(*) FROM exp_2 WHERE subject_id = ${id.subject_id})
+          , 1 ,0)  as CompletedSubject)`,
+        function (error, resultsss, fields) {
+          if (error) throw error;
+          console.log(resultsss,+id.subject_id+ 'sdfjklasdjflkajdf')
+          if(resultsss[0].CompletedSubject==1){
+            con.query("USE mceme;", (err, res, fields) => {});
+            con.query(
+              `UPDATE subjects_3 SET running_status=1 WHERE sub_id=${id.subject_id}`,
+              (err, res, fields) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  console.log(
+                    "RUNNING SUBJECT STATUS CHANGED TO 1 @",
+                    new Date().toString()
+                  );
+                }
+              }
+            );
+          }
+          resultsArr.push(resultsss)
+
+          // connected!
+          // resultsArr.push(results)
+        }
+      );
+        
+    })
+    
+  });
  
-};
+  console.log("COMPLETED SUBJECTS QUERIED AT", new Date().toString());
+}); 
+
+
 
 // api route to get first subject topics from exp table
 
-app.get("/getFirstSubjectTopics/:id", (req, resi) => {
-  const id =  req.params.id;               
+app.get("/getFirstSubjectTopics", (req, resi) => {
   let array24 = [];
   con.query("USE mceme;", (err, res, fields) => {});
 
   con.query(
-    `select * from exp where subject_id=${id} and topic_status = 0;`,
+    `SELECT * FROM mceme.exp inner join mceme.subjects_3 on mceme.exp.subject_id = mceme.subjects_3.sub_id where topic_status =0 order by subject_id limit 24;`,
     function (error, results, fields) {
       if (error) throw error;
       else{
-        console.log("firstsubjects data",results);
+        // console.log("firstsubjects data",results);
       }
       // console.log(results);
      // connected!
       let topics = results;
-    for(let i=0;i<24;i++){
-      if (topics[i] === undefined) {
-        // api to change the running subject status to 1
+      console.log("topics  of 1st subject",topics);
+    // for(let i=0;i<24;i++){
+    //   if (topics[i] === undefined) {
+    //     // api to change the running subject status to 1
 
-        con.query("USE mceme;", (err, res, fields) => {});
-        con.query(
-          `UPDATE subjects_3 SET running_status=1 WHERE sub_id=${id}`,
+    //     con.query("USE mceme;", (err, res, fields) => {});
+    //     con.query(
+    //       `UPDATE subjects_3 SET running_status=1 WHERE sub_id=${id}`,
 
-          (err, res, fields) => {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log(
-                "RUNNING SUBJECT STATUS CHANGED TO 1 @",
-                new Date().toString()
-              );
-            }
-          }
-        );
-        break;
+    //       (err, res, fields) => {
+    //         if (err) {
+    //           console.log(err);
+    //         } else {
+    //           console.log(
+    //             "RUNNING SUBJECT STATUS CHANGED TO 1 @",
+    //             new Date().toString()
+    //           );
+    //         }
+    //       }
+    //     );
+    //     break;
 
-      }
-      array24.push(topics[i]);
-    }
-    console.log(array24);
-    resi.json({array24:array24,topics:topics});
+    //   }
+    //   array24.push(topics[i]);
+    // }
+    // console.log(array24);
+
+    resi.json(topics)
     }
   );
   console.log("TOPIC BY SUB_ID QUERIED AT", new Date().toString());
 }
 );
 
+
 // api route to get second subject topics from exp table
 
-app.get("/getSecondSubjectTopics/:id", (req, resi) => {
-  const id =  req.params.id;               
+app.get("/getSecondSubjectTopics", (req, resi) => {
+       
   let array18 = [];
   con.query("USE mceme;", (err, res, fields) => {});
   con.query(
-    `select * from exp where subject_id=${id} and topic_status = 0;`,
+    `SELECT * FROM mceme.exp_2 inner join mceme.subjects_3 on mceme.exp_2.subject_id = mceme.subjects_3.sub_id where topic_status =0 order by subject_id limit 18 ;`,
     function (error, results, fields) {
       if (error) throw error;
       else{
-        console.log("secondsubjects data",results);
+      
       }
+      let topics = results;
+      console.log("topics  of 2nd subject",topics);
       // console.log(results);
      // connected!
-      let topics = results;
-    for(let i=0;i<18;i++){
-      if (topics[i] === undefined) {
-        // api to change the running subject status to 1
+      // let topics = results;
+    // for(let i=0;i<18;i++){
+    //   if (topics[i] === undefined) {
+    //     // api to change the running subject status to 1
 
-        con.query("USE mceme;", (err, res, fields) => {});
-        con.query(
-          `UPDATE subjects_3 SET running_status=1 WHERE sub_id=${id}`,
-          (err, res, fields) => {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log(
-                "RUNNING SUBJECT STATUS CHANGED TO 1 @",
-                new Date().toString()
-              );
-            }
-          }
-        );
-        break;
+    //     con.query("USE mceme;", (err, res, fields) => {});
+    //     con.query(
+    //       `UPDATE subjects_3 SET running_status=1 WHERE sub_id=${id}`,
+    //       (err, res, fields) => {
+    //         if (err) {
+    //           console.log(err);
+    //         } else {
+    //           console.log(
+    //             "RUNNING SUBJECT STATUS CHANGED TO 1 @",
+    //             new Date().toString()
+    //           );
+    //         }
+    //       }
+    //     );
+    //     break;
 
-      }
-      array18.push(topics[i]);
-    }
-    console.log(array18);
-    resi.json({array18:array18,topics:topics});
+    //   }
+    //   array18.push(topics[i]);
+    // }
+    // console.log(array18);
+    resi.json(topics)
     }
   );
   console.log("TOPIC BY SUB_ID QUERIED AT", new Date().toString());
@@ -653,20 +849,49 @@ app.post("/savetimetable", (req, ress) => {
 
 
   const data = req.body;
-  const datainarray =data.children
-console.log("time table data ",datainarray);  
-
+  // destructuring the data
+  const {
+    firstSubjectTopics,
+    secondSubjectTopics,
+  } = data;
+firstSubjectTopics.map((item,idx)=>{
   con.query("USE mceme;", (err, res, fields) => {});
-  datainarray.map((item, idx) => {
-    con.query(
-      `update  exp set topic_status = 1  WHERE id=${item.id}`,
-      (err, res, fields) => {
-        if (err) {
-          console.log(err);
-        }
+  con.query(
+    `UPDATE exp SET topic_status=1 WHERE id=${item.id}`,
+    (err, res, fields) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(
+          "TOPIC STATUS CHANGED TO 1 @",
+          new Date().toString()
+        );
       }
-    );
-  })
+    }
+  );
+}
+)
+secondSubjectTopics.map((item,idx)=>{
+  con.query("USE mceme;", (err, res, fields) => {});
+  con.query(
+    `UPDATE exp_2 SET topic_status=1 WHERE id=${item.id}`,
+    (err, res, fields) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(
+          "TOPIC STATUS CHANGED TO 1 @",
+          new Date().toString()
+        );
+      }
+    }
+  );
+}
+)
+
+
+
+
 });
 
 
